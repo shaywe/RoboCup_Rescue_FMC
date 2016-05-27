@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7"/>
+	<classpathentry kind="lib" path="/home/shay/RoboCup_Rescue/roborescue-v1.2/jars/clear.jar"/>
+	<classpathentry kind="lib" path="/home/shay/RoboCup_Rescue/roborescue-v1.2/jars/collapse.jar"/>
+	<classpathentry kind="lib" path="/home/shay/RoboCup_Rescue/roborescue-v1.2/jars/gis2.jar"/>
+	<classpathentry kind="lib" path="/home/shay/RoboCup_Rescue/roborescue-v1.2/jars/handy.jar"/>
+	<classpathentry kind="lib" path="/home/shay/RoboCup_Rescue/roborescue-v1.2/jars/human.jar"/>
+	<classpathentry kind="lib" path="/home/shay/RoboCup_Rescue/roborescue-v1.2/jars/ignition.jar"/>
+	<classpathentry kind="lib" path="/home/shay/RoboCup_Rescue/roborescue-v1.2/jars/kernel.jar"/>
+	<classpathentry kind="lib" path="/home/shay/RoboCup_Rescue/roborescue-v1.2/jars/maps.jar"/>
+	<classpathentry kind="lib" path="/home/shay/RoboCup_Rescue/roborescue-v1.2/jars/misc.jar"/>
+	<classpathentry kind="lib" path="/home/shay/RoboCup_Rescue/roborescue-v1.2/jars/rescuecore2.jar"/>
+	<classpathentry kind="lib" path="/home/shay/RoboCup_Rescue/roborescue-v1.2/jars/resq-fire.jar"/>
+	<classpathentry kind="lib" path="/home/shay/RoboCup_Rescue/roborescue-v1.2/jars/sample.jar"/>
+	<classpathentry kind="lib" path="/home/shay/RoboCup_Rescue/roborescue-v1.2/jars/standard.jar"/>
+	<classpathentry kind="lib" path="/home/shay/RoboCup_Rescue/roborescue-v1.2/jars/traffic3.jar"/>
+	<classpathentry kind="lib" path="/home/shay/RoboCup_Rescue/1.231-src/rcrscs-v1.231.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
