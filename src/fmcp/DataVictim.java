@@ -1,29 +1,39 @@
 package fmcp;
+import rescuecore2.worldmodel.EntityID;
 
 public class DataVictim {
-	private int Id;
+	private EntityID id;
 	private int Hp;
 	private int damage;
-	private int position;
+	private EntityID position;
 	private int buriedness;
+	private Status status; // add to functions
 	
 	
-	public DataVictim (int Id, int Hp, int damage, int position, int buriedness) {
-		this.Id = Id;
-		this.damage = damage;
-		this.position = position;
-		this.buriedness = buriedness;
+	
+	public DataVictim (EntityID id, int Hp, int damage, EntityID position, int buriedness) {
+		//this.id = id;
+		update(Hp, damage, position, buriedness, true);
 	}
 	
 	//////////////////////////////////////////////////////
 	
-	// Id //
-	public int getId () {
-		return this.Id;
+	public boolean update (int Hp, int damage, EntityID position, int buriedness, Boolean isFullUpdate) {
+		
+		this.position = position;
+		if (isFullUpdate) {
+			this.buriedness = buriedness;
+			this.damage = damage;
+		}
+		return true;
 	}
 	
-	public void setId (int Id) {
-		this.Id = Id;
+	
+	//////////////////////////////////////////////////////
+	
+	// id //
+	public EntityID getId () {
+		return this.id;
 	}
 	
 	// Hp //
@@ -45,11 +55,11 @@ public class DataVictim {
 	}
 	
 	// position //
-	public int getPosition () {
+	public EntityID getPosition () {
 		return this.position;
 	}
 	
-	public void setPosition (int position) {
+	public void setPosition (EntityID position) {
 		this.position = position;
 	}
 	
@@ -61,6 +71,13 @@ public class DataVictim {
 	public void setBuriedness (int buriedness) {
 		this.buriedness = buriedness;
 	}
-}
-
 	
+	// Status
+	public Status getStatus () {
+		return this.status;
+	}
+	
+	public void setStatus (Status status) {
+		this.status = status;
+	}
+}

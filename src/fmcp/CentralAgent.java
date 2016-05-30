@@ -7,7 +7,6 @@ import rescuecore2.worldmodel.ChangeSet;
 import rescuecore2.messages.Command;
 import rescuecore2.log.Logger;
 
-//import rescuecore2.standard.components.StandardAgent;
 import rescuecore2.standard.entities.Building;
 import rescuecore2.standard.entities.StandardEntityURN;
 
@@ -16,10 +15,17 @@ import rescuecore2.worldmodel.EntityID;
 import java.util.List;
 
 import commlib.components.AbstractCSAgent;
+import commlib.data.RCRSCSData;
+import commlib.information.AmbulanceTeamInformation;
+import commlib.information.PositionInformation;
+import commlib.information.VictimInformation;
 import commlib.information.WorldInformation;
+import commlib.message.BaseMessageType;
 import commlib.message.RCRSCSMessage;
 import commlib.report.ReportMessage;
 import commlib.task.TaskMessage;
+import commlib.message.BaseMessageType;
+
 
 
 import commlib.message.RCRSCSMessage;
@@ -32,14 +38,13 @@ import rescuecore2.standard.kernel.comms.ChannelCommunicationModel;
  */
 public class CentralAgent extends AbstractCSAgent<Building> {
 	
-	private List<AmbulanceAgent> agents;
-	private List<EntityID> targets;
+	private DataList agents;
+	private DataList victims;
+	
+	
 	
 	private boolean	channelComm;
 	
-	public CentralAgent() {
-		agents.get(0).
-	}
 	
 	@Override
     public String toString() {
@@ -67,33 +72,17 @@ public class CentralAgent extends AbstractCSAgent<Building> {
     	//super.receiveMessage(heard);
         //this.thinking(time, changed, heard);
         //super.sendMessage(time);
-    	
     	if (time == config.getIntValue(kernel.KernelConstants.IGNORE_AGENT_COMMANDS_KEY)) {
-        	if(this.channelComm){
+        	if(channelComm){
                 int channel = 1; // the channel the agent is going to use in order to send and receive messages
 				// Assign the agent to channel 1
 				setMessageChannel(channel); // shall be used once --> in a simulation or a time step?
 			}
         }
     	
+    	
     	// consolidate and update information
-    	for (RCRSCSMessage message : receivedMessageList) { //a list of RCRSCMessage
-        	Logger.info(message.toString());
-    		if (message instanceof WorldInformation) { //Information message
-    			
-    		}
-    		else {
-    			if (message instanceof ReportMessage) { //Report message
-    				
-    			}
-    			else {
-        			if (message instanceof TaskMessage) {
-        				
-        			}
-        		}
-    		}
-    		
-    	}
+    	consolidateData();
     	
     	// inform agents??
     	
@@ -105,7 +94,112 @@ public class CentralAgent extends AbstractCSAgent<Building> {
     	sendRest(time);
     }
     
+    private void consolidateData () {
+    	for (RCRSCSMessage msg : receivedMessageList) {
+    		System.out.println(msg.getSendTime());
+			System.out.println(msg.isSendable());
+			System.out.println(msg.getMessageType());
+			System.out.println(msg.getMessageType() == BaseMessageType.POSITION);
+			System.out.println(msg instanceof WorldInformation);
+			
+			System.out.println("*****msg*******");
+			if (msg instanceof TaskMessage) {
+				System.out.println("CENTER RECEIVED TASK MESSAGE");
+			}
+			
+			switch (msg.getMessageType()) {
+				//
+			case AMBULANCE_TEAM:
+				//
+				agents.updateAgentData(((AmbulanceTeamInformation)msg).getEntityID(),
+										((AmbulanceTeamInformation)msg).getHP(),
+										((AmbulanceTeamInformation)msg).getDamage(),
+										((AmbulanceTeamInformation)msg).getPositionID(),
+										((AmbulanceTeamInformation)msg).getBuriedness());
+				break;
+				//
+			case VICTIM:
+				// 
+				victims.updateAgentData(((VictimInformation)msg).getVictimID(),
+										((VictimInformation)msg).getHP(),
+										((VictimInformation)msg).getDamage(),
+										((VictimInformation)msg).getAreaID(),
+										((VictimInformation)msg).getBuriedness());
+				// execute algorithm and assign tasks to agents
+				
+				break;
+			case POSITION:
+				//
+				victims.updateAgentData(((PositionInformation)msg).getAgentID(),
+										((PositionInformation)msg).getAgentID());
+				break;
+			case BLOCKADE:
+				//
+				//blockades.updateAgentData(id, position);
+				break;
+				
+			case BUILDING:
+				//
+				
+				break;
+				
+			case CLEAR_ROUTE:
+				break;
+			case DECIDE_LEADER:
+				break;
+			
+			case EXTINGUISH_AREA:
+				break;
+			case REST_TASK:
+				break;
+			case SCOUT_AREA:
+				break;
+			case RESCUE_AREA:
+				break;
+			case REST_AT_REFUGE_TASK:
+				break;
+				
+				
+			case BLOCKADE_WITH_COORDINATE:
+				break;
+			case DONE:
+				break;
+			case EXCEPTION:
+				break;
+			
+			case FIRE_BRIGADE:
+				break;
+			case MOVE_TASK:
+				break;
+			case MOVE_WITH_STAGING_POST_TASK:
+				break;
+			case POLICE_FORCE:
+				break;
+			
+		
+			
+			case TRANSFER_PATHWAY:
+				break;
+			case UNPASSABLE:
+				break;
+			case VICTIM_WITH_COORDINATE:
+				break;
+				
+			default:
+				break;
+			}
+			
+			
+			for (RCRSCSData<?> data: msg.getData()) {
+				System.out.println("*****data*******");
+				System.out.println(data);
+				System.out.println(data.getData());
+				System.out.println(data.getType());
+			}
+		
+    	}
 
+    }
 
     @Override
     protected EnumSet<StandardEntityURN> getRequestedEntityURNsEnum() {

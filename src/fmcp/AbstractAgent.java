@@ -57,7 +57,7 @@ public abstract class AbstractAgent<E extends StandardEntity> extends AbstractCS
        Cache of road IDs.
     */
     protected List<EntityID> roadIDs;
-datat
+
     /**
        Cache of refuge IDs.
     */
@@ -135,5 +135,16 @@ datat
         }
         return result;
     }
+    
+    protected void setChannel (int time, boolean channelComm) {
+    	if (time == config.getIntValue(kernel.KernelConstants.IGNORE_AGENT_COMMANDS_KEY)) {
+        	if(channelComm){
+                int channel = 1; // the channel the agent is going to use in order to send and receive messages
+				// Assign the agent to channel 1
+				setMessageChannel(channel); // shall be used once --> in a simulation or a time step?
+			}
+        }
+    }
+    
 }
 
