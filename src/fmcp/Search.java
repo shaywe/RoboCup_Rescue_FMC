@@ -189,7 +189,7 @@ public final class Search {
 			// No path
 			return null;
 		}
-		// Walk back from goal to start
+		// Walk back from goal to startgraph
 		EntityID current = next;
 		List<EntityID> path = new LinkedList<EntityID>();
 		do {

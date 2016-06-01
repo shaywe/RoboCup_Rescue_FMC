@@ -124,7 +124,7 @@ public class AmbulanceAgent extends AbstractAgent<AmbulanceTeam> {
     	
 		// update
 		updateUnexploredBuildings(changed);
-		
+		location();
 		
 		// Am I transporting a civilian to a refuge?
 		if(someoneOnBoard()){
@@ -217,7 +217,7 @@ public class AmbulanceAgent extends AbstractAgent<AmbulanceTeam> {
         return false;
     }
     
-    
+    // change to get from central agent
     private List<Human> getTargets() {
         List<Human> targets = new ArrayList<Human>();
         for (StandardEntity next : model.getEntitiesOfType(StandardEntityURN.CIVILIAN, StandardEntityURN.FIRE_BRIGADE, StandardEntityURN.POLICE_FORCE, StandardEntityURN.AMBULANCE_TEAM)) {
@@ -234,7 +234,7 @@ public class AmbulanceAgent extends AbstractAgent<AmbulanceTeam> {
                 targets.add(h);
             }
         }
-        //Collections.sort(targets, new DistanceSorter(location(), model));
+        Collections.sort(targets, new DistanceSorter(location(), model));
         return targets;
     }
 
@@ -252,6 +252,15 @@ public class AmbulanceAgent extends AbstractAgent<AmbulanceTeam> {
 				me().getLocation(this.model));
 		addMessage(position);
     	
+		
+		// location vs getLocation --> use the one the distace sorter does
+		model.getDistance(first, second)
+		location();
+		getLocation(model);
+		
+		
+		
+		
     	// Inform Center with precepted entities
     	StandardEntity entity;
 		BlockadeInformation blockadeInfo;

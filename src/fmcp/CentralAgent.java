@@ -89,7 +89,7 @@ public class CentralAgent extends AbstractCSAgent<Building> {
     	// run FMC_TA
     	
     	// assign tasks
-    	
+    	model.getDistance(first, second)
     	// rest
     	sendRest(time);
     }
