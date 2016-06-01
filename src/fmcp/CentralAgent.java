@@ -155,7 +155,7 @@ public class CentralAgent extends AbstractCSAgent<Building> {
 			case SCOUT_AREA:
 				break;
 			case RESCUE_AREA:
-				break;
+				break;DataVictim
 			case REST_AT_REFUGE_TASK:
 				break;
 				
