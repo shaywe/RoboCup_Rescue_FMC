@@ -21,7 +21,7 @@ public class DistanceSorter implements Comparator<StandardEntity> {
         this.reference = reference;
         this.world = world;
     }
-
+    
     @Override
     public int compare(StandardEntity a, StandardEntity b) {
         int d1 = world.getDistance(reference, a);
