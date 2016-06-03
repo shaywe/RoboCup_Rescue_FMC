@@ -87,7 +87,7 @@ public class AmbulanceAgent extends AbstractAgent<AmbulanceTeam> {
 		/*
 		 * inform center:
 		 * 1. inform with self position
-		 * 2. inform with precepted entities (Blockade, Building and Victims)  in its radius
+		 * 2. inform with precepted entities (Building and Victims)  in its radius
 		 */
 		informCenter(time, changed);
 		
@@ -124,7 +124,6 @@ public class AmbulanceAgent extends AbstractAgent<AmbulanceTeam> {
     	
 		// update
 		updateUnexploredBuildings(changed);
-		location();
 		
 		// Am I transporting a civilian to a refuge?
 		if(someoneOnBoard()){
@@ -243,7 +242,7 @@ public class AmbulanceAgent extends AbstractAgent<AmbulanceTeam> {
         for (EntityID next : changed.getChangedEntities()) {
             unexploredBuildings.remove(next);
         }
-    }
+    }Pair<Integer,Integer>
     
     private void informCenter (int time, ChangeSet changed) {
     	
@@ -251,16 +250,7 @@ public class AmbulanceAgent extends AbstractAgent<AmbulanceTeam> {
 		PositionInformation position = new PositionInformation(time, me().getID(),
 				me().getLocation(this.model));
 		addMessage(position);
-    	
-		
-		// location vs getLocation --> use the one the distace sorter does
-		model.getDistance(first, second)
-		location();
-		getLocation(model);
-		
-		
-		
-		
+
     	// Inform Center with precepted entities
     	StandardEntity entity;
 		BlockadeInformation blockadeInfo;
@@ -292,8 +282,10 @@ public class AmbulanceAgent extends AbstractAgent<AmbulanceTeam> {
 						& victim.isBuriednessDefined() & victim.isDamageDefined()){
 					victimInfo = new VictimInformation(time, victim.getID(),
 							victim.getPosition(), victim.getHP(), victim.getBuriedness(),
-							victim.getDamage());
+							victim.getDamage(),
+							victim.getLocation(model));
 					addMessage(victimInfo);
+					
 				}
 			}
 		}

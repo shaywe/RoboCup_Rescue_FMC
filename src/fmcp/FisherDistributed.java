@@ -1,7 +1,7 @@
-package fisher;
+package fmcp;
 
-import FordFulkerson.FlowNetwork;
-import TaskAllocation.*;
+//import FordFulkerson.FlowNetwork;
+//import TaskAllocation.*;
 
 public class FisherDistributed {
 	protected static final double THRESHOLD = 1E-10;

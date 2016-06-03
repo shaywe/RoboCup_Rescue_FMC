@@ -1,4 +1,4 @@
-package Solver;
+package fmcp;
 
 import java.util.Vector;
 

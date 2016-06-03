@@ -40,10 +40,11 @@ public class CentralAgent extends AbstractCSAgent<Building> {
 	
 	private DataList agents;
 	private DataList victims;
+	private Utility utilities [][];
 	
 	
 	
-	private boolean	channelComm;
+	private boolean	channelComm = this.status = nelComm;
 	
 	
 	@Override
@@ -89,7 +90,7 @@ public class CentralAgent extends AbstractCSAgent<Building> {
     	// run FMC_TA
     	
     	// assign tasks
-    	model.getDistance(first, second)
+    	
     	// rest
     	sendRest(time);
     }
@@ -124,14 +125,15 @@ public class CentralAgent extends AbstractCSAgent<Building> {
 										((VictimInformation)msg).getHP(),
 										((VictimInformation)msg).getDamage(),
 										((VictimInformation)msg).getAreaID(),
-										((VictimInformation)msg).getBuriedness());
+										((VictimInformation)msg).getBuriedness(),
+										((VictimInformation)msg).getCoodinate());
 				// execute algorithm and assign tasks to agents
 				
 				break;
 			case POSITION:
 				//
-				victims.updateAgentData(((PositionInformation)msg).getAgentID(),
-										((PositionInformation)msg).getAgentID());
+				agents.updateAgentData( ((PositionInformation)msg).getAgentID(),
+										((PositionInformation)msg).getCoordinate());
 				break;
 			case BLOCKADE:
 				//
@@ -155,7 +157,7 @@ public class CentralAgent extends AbstractCSAgent<Building> {
 			case SCOUT_AREA:
 				break;
 			case RESCUE_AREA:
-				break;DataVictim
+				break;
 			case REST_AT_REFUGE_TASK:
 				break;
 				
@@ -204,6 +206,14 @@ public class CentralAgent extends AbstractCSAgent<Building> {
     @Override
     protected EnumSet<StandardEntityURN> getRequestedEntityURNsEnum() {
         return EnumSet.of(StandardEntityURN.AMBULANCE_CENTRE);
+    }
+    
+    public Utility[][] getUtilities () {
+    	return this.utilities;
+    }
+    
+    public void setUtilityOf (int i, int j, Utility utility) {
+    	
     }
 }
 

@@ -13,14 +13,20 @@ public enum Status {
 	//
 	SCOUTING,
 	
+	//
+	WALKING_TO_REFUGE,
 	
 	// passive status
 	//
 	BURIED,
 	
 	//
-	TRANSPORTED_TO_RESCUE
+	TRANSPORTED_TO_RESCUE,
 	
 	//
+	DEAD,
 	
+	REFUGE,
+	
+	REST
 }
