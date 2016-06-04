@@ -13,6 +13,9 @@ import rescuecore2.standard.entities.StandardEntityURN;
 
 import rescuecore2.worldmodel.EntityID;
 import java.util.List;
+import java.util.Vector;
+
+import org.apache.log4j.jmx.Agent;
 
 import commlib.components.AbstractCSAgent;
 import commlib.data.RCRSCSData;
@@ -38,13 +41,12 @@ import rescuecore2.standard.kernel.comms.ChannelCommunicationModel;
  */
 public class CentralAgent extends AbstractCSAgent<Building> {
 	
-	private DataList agents;
-	private DataList victims;
-	private Utility utilities [][];
+	private DataList<DataAgent> RescueAgents;
+	private DataList<DataVictim> victims;
 	
 	
 	
-	private boolean	channelComm = this.status = nelComm;
+	private boolean	channelComm;
 	
 	
 	@Override
@@ -112,32 +114,32 @@ public class CentralAgent extends AbstractCSAgent<Building> {
 				//
 			case AMBULANCE_TEAM:
 				//
-				agents.updateAgentData(((AmbulanceTeamInformation)msg).getEntityID(),
-										((AmbulanceTeamInformation)msg).getHP(),
-										((AmbulanceTeamInformation)msg).getDamage(),
-										((AmbulanceTeamInformation)msg).getPositionID(),
-										((AmbulanceTeamInformation)msg).getBuriedness());
+				RescueAgents.updateAgentData(new DataAgent(((AmbulanceTeamInformation)msg).getEntityID(),
+															((AmbulanceTeamInformation)msg).getHP(),
+															((AmbulanceTeamInformation)msg).getDamage(),
+															((AmbulanceTeamInformation)msg).getPositionID(),
+															((AmbulanceTeamInformation)msg).getBuriedness(),
+															null));
 				break;
 				//
 			case VICTIM:
 				// 
-				victims.updateAgentData(((VictimInformation)msg).getVictimID(),
-										((VictimInformation)msg).getHP(),
-										((VictimInformation)msg).getDamage(),
-										((VictimInformation)msg).getAreaID(),
-										((VictimInformation)msg).getBuriedness(),
-										((VictimInformation)msg).getCoodinate());
+				victims.updateAgentData(new DataVictim (((VictimInformation)msg).getVictimID(),
+														((VictimInformation)msg).getHP(),
+														((VictimInformation)msg).getDamage(),
+														((VictimInformation)msg).getAreaID(),
+														((VictimInformation)msg).getBuriedness(),
+														((VictimInformation)msg).getCoodinate()));
 				// execute algorithm and assign tasks to agents
 				
 				break;
 			case POSITION:
 				//
-				agents.updateAgentData( ((PositionInformation)msg).getAgentID(),
+				RescueAgents.updateAgentData( ((PositionInformation)msg).getAgentID(),
 										((PositionInformation)msg).getCoordinate());
 				break;
 			case BLOCKADE:
-				//
-				//blockades.updateAgentData(id, position);
+				
 				break;
 				
 			case BUILDING:
@@ -208,9 +210,53 @@ public class CentralAgent extends AbstractCSAgent<Building> {
         return EnumSet.of(StandardEntityURN.AMBULANCE_CENTRE);
     }
     
-    public Utility[][] getUtilities () {
-    	return this.utilities;
+    /**
+     * gets all agents who are not transporting a victim
+     * @param list
+     * @return a list with agents either scouting, digging ,in rest, or at refuge
+     */
+    private DataList<DataAgent> getAllAgents (DataList<DataAgent> list) {
+    	return list.getAgentsWithStatus(Status.SCOUTING, Status.DIGGING, Status.REST, Status.REFUGE);
     }
+    
+    private int totalRescueTime (DataAgent rescueAgent, DataVictim victim) {
+    	return DataList.timeToVictim(rescueAgent, victim)
+    			+ victim.timeToUnbury()
+    			+ DataList.timeToRefuge(rescueAgent, victim);//fix
+    }
+    
+    
+    
+    
+    private void compute () {
+    	// getting vectors of agents and tasks
+    	DataList<DataVictim> tasks;
+    	
+    	DataList<DataVictim> victimsTasks = DataList.merge(victims.getAllBuried(), RescueAgents.getAllBuried());
+    	DataList<DataAgent> agents = getAllAgents(RescueAgents);
+    	
+    	Utility utilities [][] = new Utility[agents.size()][victimsTasks.size()];
+    	// calculating for every victim time to live
+    	for (int i = 0; i < agents.size(); i++) {
+    		for (int j = 0; j < victimsTasks.size(); j++) {
+    			
+    			// if the victim can be saved
+    			if (totalRescueTime(agents.get(i), victimsTasks.get(j)) < victimsTasks.get(j).timeToLive()) {
+        			// fill Rij
+    				utilities[i][j] = victimsTasks.get(j).utility();
+        		}
+    			else {
+    				utilities[i][j] = new Utility(0);
+    			}
+    		}
+    		
+    	}
+    	
+    	// deleting zero rows\columns
+    	
+
+    }
+    
     
     public void setUtilityOf (int i, int j, Utility utility) {
     	

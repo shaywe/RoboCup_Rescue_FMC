@@ -95,6 +95,7 @@ public abstract class AbstractAgent<E extends StandardEntity> extends AbstractCS
             }
             if (next instanceof Refuge) {
                 refugeIDs.add(next.getID());
+                next.getLocation(model);
             }
         }
         //

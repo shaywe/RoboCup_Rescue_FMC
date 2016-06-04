@@ -49,7 +49,6 @@ public class AmbulanceAgent extends AbstractAgent<AmbulanceTeam> {
 
     @Override
     protected void postConnect() {
-    	
         super.postConnect();
         
         model.indexClass(StandardEntityURN.CIVILIAN, StandardEntityURN.FIRE_BRIGADE, StandardEntityURN.POLICE_FORCE, StandardEntityURN.AMBULANCE_TEAM, StandardEntityURN.REFUGE,StandardEntityURN.HYDRANT,StandardEntityURN.GAS_STATION, StandardEntityURN.BUILDING); // change???
@@ -71,13 +70,13 @@ public class AmbulanceAgent extends AbstractAgent<AmbulanceTeam> {
     }
 
     
-    /*
+    /**
      * this what happens at extended class before 'thinking' is called:
      * 		super.receiveMessage(heard);
      * 		this.thinking(time, changed, heard);
      * 		super.sendMessage(time);
      */
-    @Override
+    
     protected void thinking(int time, ChangeSet changed, Collection<Command> heard) {
     	 
 		
@@ -242,7 +241,7 @@ public class AmbulanceAgent extends AbstractAgent<AmbulanceTeam> {
         for (EntityID next : changed.getChangedEntities()) {
             unexploredBuildings.remove(next);
         }
-    }Pair<Integer,Integer>
+    }
     
     private void informCenter (int time, ChangeSet changed) {
     	
