@@ -4,10 +4,12 @@ import java.util.Collection;
 import java.util.EnumSet;
 
 import rescuecore2.worldmodel.ChangeSet;
+import rescuecore2.worldmodel.Entity;
 import rescuecore2.messages.Command;
 import rescuecore2.log.Logger;
 
 import rescuecore2.standard.entities.Building;
+import rescuecore2.standard.entities.Refuge;
 import rescuecore2.standard.entities.StandardEntityURN;
 
 
@@ -20,6 +22,7 @@ import org.apache.log4j.jmx.Agent;
 import commlib.components.AbstractCSAgent;
 import commlib.data.RCRSCSData;
 import commlib.information.AmbulanceTeamInformation;
+import commlib.information.BuildingInformation;
 import commlib.information.PositionInformation;
 import commlib.information.VictimInformation;
 import commlib.information.WorldInformation;
@@ -43,6 +46,7 @@ public class CentralAgent extends AbstractCSAgent<Building> {
 	
 	private DataList<DataAgent> RescueAgents;
 	private DataList<DataVictim> victims;
+	private List<EntityID> refuges;
 	
 	
 	
@@ -135,18 +139,27 @@ public class CentralAgent extends AbstractCSAgent<Building> {
 				break;
 			case POSITION:
 				//
+				if (((PositionInformation)msg).getAgentID() instanceof Refuge) {
+					
+				}
+				
 				RescueAgents.updateAgentData( ((PositionInformation)msg).getAgentID(),
 										((PositionInformation)msg).getCoordinate());
-				break;
-			case BLOCKADE:
-				
 				break;
 				
 			case BUILDING:
 				//
+				refuges.add(((BuildingInformation)msg).getBuildingID());
+				break;
+					
+				
+				
+			
+			case BLOCKADE:
 				
 				break;
 				
+			
 			case CLEAR_ROUTE:
 				break;
 			case DECIDE_LEADER:
@@ -222,44 +235,18 @@ public class CentralAgent extends AbstractCSAgent<Building> {
     private int totalRescueTime (DataAgent rescueAgent, DataVictim victim) {
     	return DataList.timeToVictim(rescueAgent, victim)
     			+ victim.timeToUnbury()
-    			+ DataList.timeToRefuge(rescueAgent, victim);//fix
+    			+ DataList.timeToRefuge(rescueAgent, victim, rescueAgent.getVelocity());//fix
     }
     
     
     
     
     private void compute () {
-    	// getting vectors of agents and tasks
-    	DataList<DataVictim> tasks;
+    	FisherSolver.setInput(RescueAgents, victims);
     	
-    	DataList<DataVictim> victimsTasks = DataList.merge(victims.getAllBuried(), RescueAgents.getAllBuried());
-    	DataList<DataAgent> agents = getAllAgents(RescueAgents);
-    	
-    	Utility utilities [][] = new Utility[agents.size()][victimsTasks.size()];
-    	// calculating for every victim time to live
-    	for (int i = 0; i < agents.size(); i++) {
-    		for (int j = 0; j < victimsTasks.size(); j++) {
-    			
-    			// if the victim can be saved
-    			if (totalRescueTime(agents.get(i), victimsTasks.get(j)) < victimsTasks.get(j).timeToLive()) {
-        			// fill Rij
-    				utilities[i][j] = victimsTasks.get(j).utility();
-        		}
-    			else {
-    				utilities[i][j] = new Utility(0);
-    			}
-    		}
-    		
-    	}
-    	
-    	// deleting zero rows\columns
-    	
-
     }
     
     
-    public void setUtilityOf (int i, int j, Utility utility) {
-    	
-    }
+    
 }
 

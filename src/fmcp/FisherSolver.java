@@ -1,4 +1,4 @@
-package Solver;
+package fmcp;
 
 import java.util.*;
 import java.util.Map.Entry;
@@ -6,7 +6,7 @@ import java.util.Map.Entry;
 import fisher.*;
 import Comparators.*;
 import Helpers.WriteToFile;
-import PoliceTaskAllocation.Event;
+import PoliceTaskAllocation.DataVictim;
 import TaskAllocation.*;
 
 public class FisherSolver extends Solver {
@@ -15,7 +15,7 @@ public class FisherSolver extends Solver {
 	protected Vector<Assignment>[] allocation;
 
 	public FisherSolver(Utility[][] input, TaskOrdering taskOrdering,
-			Vector<Event> tasks) {
+			Vector<DataVictim> tasks) {
 		super(input, taskOrdering, tasks);
 		// TODO Auto-generated constructor stub
 	}
@@ -128,6 +128,61 @@ public class FisherSolver extends Solver {
 		
 		return all;
 	}
+	
+	////////////////////////////////////////////
+	////////////////////////////////////////////
+	
+	public static void setInput (DataList<DataAgent> RescueAgents, DataList<DataVictim> victims) {
+		
+		
+		// getting vectors of agents and tasks
+    	DataList<DataVictim> tasks;
+    	
+    	DataList<DataVictim> victimsTasks = DataList.merge(victims.getAllBuried(), RescueAgents.getAllBuried());
+    	DataList<DataAgent> agents = getAllAgents(RescueAgents);
+    	
+    	Utility utilities [][] = new Utility[agents.size()][victimsTasks.size()];
+    	// calculating for every victim time to live
+    	for (int i = 0; i < agents.size(); i++) {
+    		for (int j = 0; j < victimsTasks.size(); j++) {
+    			
+    			// if the victim can be saved
+    			if (totalRescueTime(agents.get(i), victimsTasks.get(j)) < victimsTasks.get(j).timeToLive()) {
+        			// fill Rij
+    				utilities[i][j] = victimsTasks.get(j).utility();
+        		}
+    			else {
+    				utilities[i][j] = new Utility(0);
+    			}
+    		}
+    		
+    	}
+    	// remove zero rows\columns	`1
+	}
+	
+	/**
+     * gets all agents who are not transporting a victim
+     * @param list
+     * @return a list with agents either scouting, digging ,in rest, or at refuge
+     */
+    private static DataList<DataAgent> getAllAgents (DataList<DataAgent> list) {
+    	return list.getAgentsWithStatus(Status.SCOUTING, Status.DIGGING, Status.REST, Status.REFUGE);
+    }
+    
+    /**
+     * total rescue time comprised of:<br>
+     * 1. time to victim
+     * 2. time to rescue the victim
+     * 3. time to refuge
+     * @param rescueAgent
+     * @param victim
+     * @return the total rescue time (worst case estimation)
+     */
+    private static int totalRescueTime (DataAgent rescueAgent, DataVictim victim) {
+    	return DataList.timeToVictim(rescueAgent, victim)
+    			+ victim.timeToUnbury()
+    			+ DataList.timeToRefuge(rescueAgent, victim, rescueAgent.getVelocity());//fix
+    }
 
 
 

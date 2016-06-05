@@ -1,20 +1,20 @@
-package Solver;
+package fmcp;
 
 import java.io.*;
 import java.util.*;
 import java.util.Map.Entry;
 
 import Comparators.UtilityComparator;
-import PoliceTaskAllocation.Event;
-import PoliceTaskAllocation.PoliceUnit;
+import PoliceTaskAllocation.DataVictim;
+import PoliceTaskAllocation.DataAgent;
 import TaskAllocation.*;
 
 
 public abstract class Solver {
 	
 	protected Utility[][] input;
-	protected Vector<PoliceUnit> policeUnits;
-	protected Vector<Event>  tasks;
+	protected Vector<DataAgent> ambulanceAgents;
+	protected Vector<DataVictim>  tasks;
 	protected TaskOrdering taskOrdering;
 	
 
@@ -23,18 +23,18 @@ public abstract class Solver {
 
 	
 	
-	public Solver(Utility[][] input, Vector<PoliceUnit> policeUnits, Vector<Event>  tasks,TaskOrdering taskOrdering) {
+	public Solver(Utility[][] input, Vector<DataAgent> ambulanceAgents, Vector<DataVictim>  tasks,TaskOrdering taskOrdering) {
 		super();
 		this.input = input;
 
-		this.policeUnits = policeUnits;
+		this.ambulanceAgents = ambulanceAgents;
 		this.tasks = tasks;
 		this.taskOrdering=taskOrdering;
 	}
 
 
 
-	public Solver(Utility[][] input, TaskOrdering taskOrdering2,Vector<Event>  tasks) {
+	public Solver(Utility[][] input, TaskOrdering taskOrdering2,Vector<DataVictim>  tasks) {
 		this.input = input;
 		this.taskOrdering=taskOrdering2;
 		this.tasks = tasks;
@@ -53,7 +53,7 @@ public abstract class Solver {
 	protected Vector<Assignment>[] divideAllocation(
 			Vector<Assignment>[] missionAllocation) {
 
-		Vector<Assignment>[] agentsAllocation = new Vector[policeUnits.size()];
+		Vector<Assignment>[] agentsAllocation = new Vector[ambulanceAgents.size()];
 		for (int i = 0; i < agentsAllocation.length; i++) {
 			agentsAllocation[i] = new Vector<Assignment>();
 
@@ -75,11 +75,11 @@ public abstract class Solver {
 		this.input = input;
 	}
 	
-	public void setAgnets(Vector<PoliceUnit> policeUnits) {
-		this.policeUnits = policeUnits;
+	public void setAgnets(Vector<DataAgent> ambulanceAgents) {
+		this.ambulanceAgents = ambulanceAgents;
 	}
 
-	public void setTasks(Vector<Event>  tasks) {
+	public void setTasks(Vector<DataVictim>  tasks) {
 		this.tasks = tasks;
 	}
 	protected Vector<Assignment>[] creatSolution(Double[][] output) {

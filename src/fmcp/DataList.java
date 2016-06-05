@@ -134,9 +134,8 @@ public class DataList<T extends DataVictim> {
 	 * @return the time that will take the rescue agent to reach the refuge from victim's location
 	 * rounding time up for worst case scenario
 	 */
-	public static int timeToRefuge (DataAgent victim, DataVictim refuge) {
-		int agentVelocity = 1;
-		int a = getRectDistance(A, refuge)
+	public static int timeToRefuge (DataAgent victim, DataVictim refuge, double agentVelocity) {
+		getRectDistance(victim, refuge);
 		return null;
 	}
 	

@@ -14,6 +14,7 @@ import rescuecore2.log.Logger;
 
 import rescuecore2.standard.entities.StandardEntity;
 import rescuecore2.standard.entities.StandardEntityURN;
+import rescuecore2.standard.entities.AmbulanceCentre;
 import rescuecore2.standard.entities.AmbulanceTeam;
 import rescuecore2.standard.entities.Human;
 import rescuecore2.standard.entities.Civilian;
@@ -22,7 +23,9 @@ import commlib.message.BaseMessageType;
 import commlib.message.RCRSCSMessage;
 import commlib.report.ReportMessage;
 import commlib.task.TaskMessage;
+import firesimulator.world.AmbulanceCenter;
 import commlib.data.RCRSCSData;
+import commlib.information.AmbulanceTeamInformation;
 import commlib.information.BlockadeInformation;
 import commlib.information.BuildingInformation;
 import commlib.information.PositionInformation;
@@ -78,8 +81,6 @@ public class AmbulanceAgent extends AbstractAgent<AmbulanceTeam> {
      */
     
     protected void thinking(int time, ChangeSet changed, Collection<Command> heard) {
-    	 
-		
     	// set communication channel
     	setChannel(time, channelComm);
     	
@@ -246,9 +247,9 @@ public class AmbulanceAgent extends AbstractAgent<AmbulanceTeam> {
     private void informCenter (int time, ChangeSet changed) {
     	
     	// inform Center with position
-		PositionInformation position = new PositionInformation(time, me().getID(),
-				me().getLocation(this.model));
-		addMessage(position);
+    	addMessage(new PositionInformation (time, me().getID(),
+											me().getLocation(this.model)));
+		
 
     	// Inform Center with precepted entities
     	StandardEntity entity;
@@ -266,28 +267,47 @@ public class AmbulanceAgent extends AbstractAgent<AmbulanceTeam> {
 							blockade.getPosition(), blockade.getRepairCost());
 					addMessage(blockadeInfo);
 				}
-				
-			}else if(entity instanceof Building){ //Building
-				Building building = (Building) entity;
-				if(building.isFierynessDefined() & building.isBrokennessDefined()){ //fire??
-					buildingInfo = new BuildingInformation(time, building.getID(),
-							building.getFieryness(), building.getBrokenness());
-					addMessage(buildingInfo);
-				}
-				
 			}else if(entity instanceof Civilian){ // Civilian
 				Civilian victim = (Civilian) entity;
 				if(victim.isPositionDefined() & victim.isHPDefined()
-						& victim.isBuriednessDefined() & victim.isDamageDefined()){
-					victimInfo = new VictimInformation(time, victim.getID(),
-							victim.getPosition(), victim.getHP(), victim.getBuriedness(),
-							victim.getDamage(),
-							victim.getLocation(model));
+					& victim.isBuriednessDefined() & victim.isDamageDefined()){
+					victimInfo = new VictimInformation (time, 
+														victim.getID(),
+														victim.getPosition(), 
+														victim.getHP(), 
+														victim.getBuriedness(),
+														victim.getDamage(),
+														victim.getLocation(model));
 					addMessage(victimInfo);
 					
 				}
+			}else if(entity instanceof AmbulanceTeam) { // ambulance team
+				AmbulanceTeam ambulance = (AmbulanceTeam) entity;
+				if(ambulance.isPositionDefined() & ambulance.isHPDefined()
+						& ambulance.isBuriednessDefined() & ambulance.isDamageDefined()){
+					AmbulanceTeamInformation ambulanceInfo = new AmbulanceTeamInformation(time, 
+																ambulance.getID(),
+																ambulance.getHP(), 
+																ambulance.getDamage(),
+																ambulance.getBuriedness(),
+																ambulance.getPosition());
+					addMessage(ambulanceInfo);
+			}else if (entity instanceof Refuge) { // refuge
+				Refuge building = (Refuge) entity;
+				buildingInfo = new BuildingInformation (time, 
+														building.getID(),
+														-1, 
+														-1);
+				addMessage(buildingInfo);
+				// inform Center with position
+		    	addMessage(new PositionInformation (time,
+		    										building.getID(),
+		    										building.getLocation(this.model)));
+				
+					
 			}
 		}
+    }
     }
 }
 
