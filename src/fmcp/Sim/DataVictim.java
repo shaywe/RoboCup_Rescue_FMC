@@ -1,5 +1,6 @@
-package fmcp;
+package fmcp.Sim;
 import rescuecore2.misc.Pair;
+import fmcp.Algo.*;
 import rescuecore2.worldmodel.EntityID;
 
 public class DataVictim {
@@ -52,15 +53,27 @@ public class DataVictim {
 		return this.getBuriedness();
 	}
 	
-	
-	public Utility utility () {
-		return new Utility(this.HpMax - this.Hp);
+	@Override
+	public boolean equals(Object obj) {
+		if (obj instanceof DataVictim) {
+			return this.getId().equals(((DataVictim)obj).getId());
+		}
+		else {
+			return false;
+		}
+		
 	}
+	
+	
+	public Utility utility (int timeToFinishCurrentTask) {
+		return new Utility(this.HpMax - this.Hp - (timeToFinishCurrentTask * getDamage()));
+	}
+	
 	
 	//////////////////////////////////////////////////////
 	
 	// id //
-	protected EntityID getId () {
+	public EntityID getId () {
 		return this.id;
 	}
 	
@@ -131,7 +144,7 @@ public class DataVictim {
 	}
 	
 	// Status
-	protected Status getStatus () {
+	public Status getStatus () {
 		return this.status;
 	}
 	

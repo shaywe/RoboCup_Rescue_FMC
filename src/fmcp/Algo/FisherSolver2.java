@@ -1,38 +1,37 @@
-package fmcp;
+package fmcp.Algo;
 
 import java.util.*;
 import java.util.Map.Entry;
 
-import fisher.*;
-import Comparators.*;
-import Helpers.WriteToFile;
-import PoliceTaskAllocation.DataVictim;
-import TaskAllocation.*;
+import fmcp.Sim.*;
 
-public class FisherSolver extends Solver {
+public class FisherSolver2 extends Solver {
 
 	public static double minValue = Double.MIN_VALUE;
 	protected Vector<Assignment>[] allocation;
+	protected Utility[][] input;
+	protected TaskOrdering taskOrdering;
 
-	public FisherSolver(Utility[][] input, TaskOrdering taskOrdering,
-			Vector<DataVictim> tasks) {
-		super(input, taskOrdering, tasks);
-		// TODO Auto-generated constructor stub
+	
+
+	public FisherSolver2(Vector<DataAgent> ambulanceAgents, Vector<DataVictim> tasks,
+			 Vector<Assignment>[] allocation) {
+		super(ambulanceAgents, tasks);
+		this.allocation = allocation;
 	}
 
 	// run Fisher allocation
 	public Vector<Assignment>[] solve() {
-		Double[][] fisherInput = createFisherInput(input);
-	//WriteToFile.writeFisherOutpuToFile(fisherInput);
-		FisherPolinom f2 = new FisherPolinom(fisherInput);
+		createFisherInput();
+		FisherDistributed f2 = new FisherDistributed(input);
 	 //WriteToFile.writeFisherOutpuToFile(f2.getOutput());
 		creatFisherSolution(f2.getOutput());
 		return taskPrioritization(allocation);
 	}
 
 	// / convert utility to double for fisher input
-	protected Double[][] createFisherInput(Utility[][] input) {
-		Double[][] fisherInput = new Double[input.length][input[0].length];
+	protected Utility[][] createFisherInput() {
+		input = new Utility[ambulanceAgents.size()][input[0].length];
 		for (int i = 0; i < fisherInput.length; i++) {
 			for (int j = 0; j < fisherInput[0].length; j++) {
 				if (input[i][j] != null) {
@@ -132,7 +131,7 @@ public class FisherSolver extends Solver {
 	////////////////////////////////////////////
 	////////////////////////////////////////////
 	
-	public static void setInput (DataList<DataAgent> RescueAgents, DataList<DataVictim> victims) {
+	public  Utility[][] setInput (DataList<DataAgent> RescueAgents, DataList<DataVictim> victims) {
 		
 		
 		// getting vectors of agents and tasks
@@ -157,33 +156,87 @@ public class FisherSolver extends Solver {
     		}
     		
     	}
-    	// remove zero rows\columns	`1
+    	// remove zero rows\columns	
 	}
 	
-	/**
-     * gets all agents who are not transporting a victim
-     * @param list
-     * @return a list with agents either scouting, digging ,in rest, or at refuge
-     */
-    private static DataList<DataAgent> getAllAgents (DataList<DataAgent> list) {
-    	return list.getAgentsWithStatus(Status.SCOUTING, Status.DIGGING, Status.REST, Status.REFUGE);
-    }
+	
     
-    /**
-     * total rescue time comprised of:<br>
-     * 1. time to victim
-     * 2. time to rescue the victim
-     * 3. time to refuge
-     * @param rescueAgent
-     * @param victim
-     * @return the total rescue time (worst case estimation)
-     */
-    private static int totalRescueTime (DataAgent rescueAgent, DataVictim victim) {
-    	return DataList.timeToVictim(rescueAgent, victim)
-    			+ victim.timeToUnbury()
-    			+ DataList.timeToRefuge(rescueAgent, victim, rescueAgent.getVelocity());//fix
-    }
 
+	// prioritize tasks for each agent 
+	protected Vector<Assignment>[] taskPrioritization(Vector<Assignment>[] allocation){
+		return taskOrdering.TaskPrioritization(allocation);		
+	}
+	
+	
+	
+	/// convert division by tasks to division by agents
+	protected Vector<Assignment>[] divideAllocation(
+			Vector<Assignment>[] missionAllocation) {
+
+		Vector<Assignment>[] agentsAllocation = new Vector[ambulanceAgents.size()];
+		for (int i = 0; i < agentsAllocation.length; i++) {
+			agentsAllocation[i] = new Vector<Assignment>();
+
+		}
+		for (int i = 0; i < missionAllocation.length; i++) {
+			
+			for (Assignment a : missionAllocation[i]) {
+				
+				agentsAllocation[a.getAgent().getId()-1].add(a);
+			}
+		}
+		taskPrioritization(agentsAllocation);
+		return agentsAllocation;
+	}
+
+
+
+	public void setInput(Utility[][] input) {
+		this.input = input;
+	}
+	
+	public void setAgnets(Vector<DataAgent> ambulanceAgents) {
+		this.ambulanceAgents = ambulanceAgents;
+	}
+
+	public void setTasks(Vector<DataVictim>  tasks) {
+		this.tasks = tasks;
+	}
+	protected Vector<Assignment>[] creatSolution(Double[][] output) {
+		Vector<Assignment>[] allocation = new Vector[output.length];
+		for (int i = 0; i < allocation.length; i++) {
+			allocation[i] = new Vector<Assignment>();
+		}
+		//sort the fraction allocation to task j 
+			for(int j = 0; j < output[0].length; j++) {
+			int uR = tasks.get(j).getAgentsRequiered();
+			TreeMap<Double,Integer>all=new TreeMap<Double,Integer>();
+			
+				for (int i = 0; i < output.length; i++) {
+					if(output[i][j]!=null){
+						all.put(output[i][j],i);
+					}
+				}
+			//allocates only the required number of units
+				while(all.size()>uR){
+					all.remove(all.firstKey());
+				}
+				tasks.get(j).setNumOfAllocatedAgents(all.size());
+				double sum=0;
+				for(Entry<Double, Integer> e: all.entrySet()) {
+				
+					sum=sum+output[e.getValue()][j];
+				}
+				for(Entry<Double, Integer> e: all.entrySet()) {
+					int an=e.getValue();
+					allocation[an].add(new Assignment(input[an][j].getAgent(),input[an][j].getTask(),
+							 output[an][j]/sum));
+								
+				}
+				
+		}
+		return allocation;
+	}
 
 
 }

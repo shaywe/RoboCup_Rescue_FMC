@@ -1,4 +1,4 @@
-package fmcp;
+package fmcp.Sim;
 
 import java.util.Collection;
 import java.util.EnumSet;
@@ -37,7 +37,7 @@ import commlib.message.BaseMessageType;
 import commlib.message.RCRSCSMessage;
 import rescuecore2.Constants;
 import rescuecore2.standard.kernel.comms.ChannelCommunicationModel;
-
+import fmcp.Algo.*;
 
 /**
    A central agent.

@@ -1,4 +1,4 @@
-package fmcp;
+package fmcp.Algo;
 
 //import FordFulkerson.FlowNetwork;
 //import TaskAllocation.*;
@@ -15,7 +15,6 @@ public class FisherDistributed {
 	protected double change;
 
 	public FisherDistributed(Utility[][] utilities) {
-
 		this.nofGoods = utilities[0].length;
 		this.nofAgents = utilities.length;
 		currentAllocation = new Double[nofAgents][nofGoods];

@@ -1,5 +1,4 @@
-package fmcp;
-import java.util.TreeMap;
+package fmcp.Sim;
 import java.util.Vector;
 import commlib.message.RCRSCSMessage;
 import rescuecore2.misc.Pair;
@@ -7,34 +6,29 @@ import rescuecore2.worldmodel.EntityID;
 
 public class DataList<T extends DataVictim> {
 	
-	private TreeMap<EntityID,Integer> convertionMap;
 	private Vector<T> vec;
 	
 	public DataList () {
-		convertionMap = new TreeMap<EntityID,Integer>();
 		vec = new Vector<T>();
 	}
 	
 	public void updateAgentData (T data) {
 		
-		if (convertionMap.containsKey(data.getId())) { // existing id
-			vec.get(convertionMap.get(data.getId())).update(data.getHp(), data.getDamage(), data.getPosition(), data.getBuriedness(),data.getLocation(), true);
+		if (this.contains(data)) { // existing id
+			vec.get(vec.indexOf(data)).update(data.getHp(), data.getDamage(), data.getPosition(), data.getBuriedness(),data.getLocation(), true);
 		}
 		else { // this is a new one
-			convertionMap.put(data.getId(), vec.size());
 			vec.add(data);
 		}
 	}
 		
-		
-	
 	/*
 	 * updates agent's data or creates a new record if not exists
 	 */
 	public void updateAgentData (EntityID id, Pair<Integer, Integer> location) {
 		
-		if (convertionMap.containsKey(id)) { // existing id
-			vec.get(convertionMap.get(id)).update(-1, -1, null, -1, location, false);
+		if (this.containsEntityId(id)) { // existing id
+			get(id).update(-1, -1, null, -1, location, false);
 		}
 		else { // this is a new one
 			System.out.println("ERROR - POSITION MESSAGE FOR AGENT " + id + " BEFORE INIT");
@@ -42,6 +36,30 @@ public class DataList<T extends DataVictim> {
 	}
 	
 	
+	private boolean containsEntityId (EntityID id) {
+		for (DataVictim vic : this.vec) {
+			if (vic.getId().equals(id)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	private boolean contains (T data) {
+		return vec.contains(data);		
+	}
+	
+	// get specific agent
+	public T get (EntityID id) {
+		for (T vic : this.vec) {
+			if (vic.getId().equals(id)) {
+				return vic;
+			}
+		}
+		return null;
+	}
+	
+		
 	// get specific agent
 	public T get (int index) {
 		return vec.elementAt(index);
@@ -110,9 +128,10 @@ public class DataList<T extends DataVictim> {
 				+ Math.abs(A.getLocation().second() - B.getLocation().second());
 	}
 	
+
 	private static int getRectDistance (DataVictim A, EntityID B) {
-		return Math.abs(A.getLocation().first() - B.)
-				+ Math.abs(A.getLocation().second() - B.getLocation().second());
+		return 0;//Math.abs(A.getLocation().first() - B.)
+				//+ Math.abs(A.getLocation().second() - B.getLocation().second());
 	}
 	
 	
@@ -136,7 +155,7 @@ public class DataList<T extends DataVictim> {
 	 */
 	public static int timeToRefuge (DataAgent victim, DataVictim refuge, double agentVelocity) {
 		getRectDistance(victim, refuge);
-		return null;
+		return 1;
 	}
 	
 	

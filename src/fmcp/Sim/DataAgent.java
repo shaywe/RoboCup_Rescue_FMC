@@ -1,4 +1,4 @@
-package fmcp;
+package fmcp.Sim;
 import java.util.Queue;
 
 import rescuecore2.misc.Pair;
@@ -8,8 +8,7 @@ public class DataAgent extends DataVictim{
 	private final double velocityMean = 0.7;
 	private final double velocityStd = 0.1;
 	protected final double velocity;
-
-	Queue<DataVictim> missions;
+	private Queue<DataVictim> missions;
 	
 	
 	public DataAgent(EntityID id, int Hp, int damage, EntityID position, int buriedness, Pair<Integer, Integer> location) {
@@ -25,7 +24,14 @@ public class DataAgent extends DataVictim{
 	
 	
 	//////////////////////////////////////////////////////
-	
+	public int timeToFinishTransport () {
+		if (isTransporting()) {
+			return ...
+		}
+		else {
+			return 0;
+		}
+	}
 	public boolean isTransporting () {
 		return this.status == Status.TRANSPORTING_VICTIM;
 	}
