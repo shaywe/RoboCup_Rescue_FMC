@@ -130,7 +130,7 @@ public class FisherSolver extends Solver {
 				
 				if (output[i][j] != null) {
 					// Xij * Rij
-					Double tmp = output[i][j] * input[i][j].getUtility(); //victim.utility(agent.timeToFinishTransport()).getUtility();
+					Double tmp = output[i][j] * input[i][j].getUtility();
 					agent.addTask(tmp, victim);
 				}
 

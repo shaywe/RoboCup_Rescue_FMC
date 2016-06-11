@@ -46,6 +46,7 @@ public class AmbulanceAgent extends AbstractAgent<AmbulanceTeam> {
 	private Collection<EntityID> unexploredBuildings;
 	private boolean channelComm;
 	private List<Human> tasks;
+
 	@Override
 	public String toString() {
 		return "ambulance agent";
@@ -90,82 +91,75 @@ public class AmbulanceAgent extends AbstractAgent<AmbulanceTeam> {
 		 */
 		informCenter(time, changed);
 
-		// get info and tasks
+		// get tasks from Center
 		getTasks(time);
 
 		// update
 		updateUnexploredBuildings(changed);
-		
-		
+
 		// Am I transporting a civilian to a refuge?
 		if (someoneOnBoard()) {
-			// shall I keep transporting him?
-			if (isCarryingFirstVictim()) {
-				// Am I at a refuge?
-				if (location() instanceof Refuge) {
-					// Unload!
-					sendUnload(time);
-					addMessage(new DoneReportMessage(time, me().getID()));
+			// Am I at a refuge?
+			if (location() instanceof Refuge) {
+				// Unload!
+				sendUnload(time);
+				tasks.remove(whoIsOnBoard());
+				addMessage(new DoneReportMessage(time, me().getID()));
+				return;
+			} else {
+				// Move to a refuge
+				List<EntityID> path = search.breadthFirstSearch(me().getPosition(), refugeIDs);
+				if (path != null) {
+					Logger.info("Moving to refuge");
+					sendMove(time, path);
 					return;
-				} else {
-					// Move to a refuge
-					List<EntityID> path = search.breadthFirstSearch(me().getPosition(), refugeIDs);
-					if (path != null) {
-						Logger.info("Moving to refuge");
-						sendMove(time, path);
-						return;
-					}
-					// What do I do now? Might as well carry on and see if we can dig
-					// someone else out.
-					Logger.debug("Failed to plan path to refuge");
+				}
+				// What do I do now? Might as well carry on and see if we can
+				// dig
+				// someone else out.
+				Logger.debug("Failed to plan path to refuge");
+			}
+
+		}
+
+		for (Human next : tasks) {
+			if (next.getPosition().equals(location().getID())) {
+				// Targets in the same place might need rescuing or loading
+				if (next.getBuriedness() == 0 && !(location() instanceof Refuge)) {
+					// Load
+					Logger.info("Loading " + next);
+					// addMessage(message);
+					sendLoad(time, next.getID());
+					return;
+				}
+				if (next.getBuriedness() > 0) {
+					// Rescue
+					Logger.info("Rescueing " + next);
+					// addMessage(message);
+					sendRescue(time, next.getID());
+					return;
+				}
+			} 
+			else {
+				// Try to move to the target
+				List<EntityID> path = search.breadthFirstSearch(me().getPosition(), next.getPosition());
+				if (path != null) {
+					Logger.info("Moving to target");
+					sendMove(time, path);
+					return;
 				}
 			}
-			else { // unloading victim for another victim | Q:shall someone change his task???
-				sendUnload(time);
-				//addMessage(new DoneReportMessage(time, me().getID()));
-				return;
-			}
-			
 		}
-		
-		for (Human next : getTasks()) {
-            if (next.getPosition().equals(location().getID())) {
-                // Targets in the same place might need rescuing or loading
-                if (next.getBuriedness() == 0 && !(location() instanceof Refuge)) {
-                    // Load
-                    Logger.info("Loading " + next);
-                    //addMessage(message);
-                    sendLoad(time, next.getID());
-                    return;
-                }
-                if (next.getBuriedness() > 0) {
-                    // Rescue
-                    Logger.info("Rescueing " + next);
-                    //addMessage(message);
-                    sendRescue(time, next.getID());
-                    return;
-                }
-            }
-            else {
-                // Try to move to the target
-                List<EntityID> path = search.breadthFirstSearch(me().getPosition(), next.getPosition());
-                if (path != null) {
-                    Logger.info("Moving to target");
-                    sendMove(time, path);
-                    return;
-                }
-            }
-        }
-		
-        // Nothing to do
-        List<EntityID> path = search.breadthFirstSearch(me().getPosition(), unexploredBuildings);
-        if (path != null) {
-            Logger.info("Searching buildings");
-            sendMove(time, path);
-            return;
-        }
-        Logger.info("Moving randomly");
-        sendMove(time, randomWalk());
+
+		// Nothing to do
+		List<EntityID> path = search.breadthFirstSearch(me().getPosition(), unexploredBuildings);
+		if (path != null) {
+			Logger.info("Searching buildings");
+			sendMove(time, path);
+			return;
+		}
+		Logger.info("Moving randomly");
+		sendMove(time, randomWalk());
 	}
 
 	@Override
@@ -187,45 +181,16 @@ public class AmbulanceAgent extends AbstractAgent<AmbulanceTeam> {
 	}
 	
 	private EntityID whoIsOnBoard () {
+		EntityID ans = null;
 		for (StandardEntity next : model.getEntitiesOfType(StandardEntityURN.CIVILIAN)) {
 			if (((Human) next).getPosition().equals(getID())) {
 				return next.getID();
 			}
 		}
-		return null;
-	}
-	
-	private boolean isCarryingFirstVictim() {
-		for (Human vic : tasks) {
-			if (whoIsOnBoard().equals(vic.getID())) {
-				return true;
-			}
-		}
-		return false;
-	}
-	
-	// change to get from central agent
-	private void setTasks() {
-		return ;
-		//get targets from last assignment
-		model.getEntity(id);
-		for (StandardEntity next : model.getEntitiesOfType(StandardEntityURN.CIVILIAN, StandardEntityURN.FIRE_BRIGADE,
-				StandardEntityURN.POLICE_FORCE, StandardEntityURN.AMBULANCE_TEAM)) {
-			Human h = (Human) next;
-			if (h == me()) {
-				continue;
-			}
-			if (h.isHPDefined() && h.isBuriednessDefined() && h.isDamageDefined() && h.isPositionDefined()
-					&& h.getHP() > 0 && (h.getBuriedness() > 0 || h.getDamage() > 0)) {
-				targets.add(h);
-			}
-		}
+		return ans;
 		
-		Collections.sort(targets, new DistanceSorter(location(), model));
-		return targets;
 	}
-	
-	
+
 	private void updateUnexploredBuildings(ChangeSet changed) {
 		for (EntityID next : changed.getChangedEntities()) {
 			unexploredBuildings.remove(next);
@@ -236,18 +201,18 @@ public class AmbulanceAgent extends AbstractAgent<AmbulanceTeam> {
 
 		for (RCRSCSMessage msg : this.receivedMessageList) {
 			switch (msg.getMessageType()) {
-			
-			//new ScoutAreaTaskMessage(time, ownerID, targetAgentID, areas);
-			//(RescueAreaTaskMessage)msg.g;
-			
+
 			case RESCUE_AREA:
 				// change next to the civilian's identifier
-				RescueAreaTaskMessage task = (RescueAreaTaskMessage)(msg);
-				if (task.getAssignedAgentID().equals(me().getID())) {
+				RescueAreaTaskMessage taskMsg = (RescueAreaTaskMessage) (msg);
+				if (taskMsg.getAssignedAgentID().equals(me().getID())) { // not validating ownwer id because we are using one cneter
 					// if this task is for me
-					tasks.add((Human) model.getEntity(task.getTargetAreaList().get(0)));
+					tasks.clear();
+					for (EntityID task : taskMsg.getTargetAreaList()) {
+						tasks.add((Human) model.getEntity(task));
+					}
 				}
-				
+
 				break;
 			case SCOUT_AREA:
 				//
@@ -306,14 +271,14 @@ public class AmbulanceAgent extends AbstractAgent<AmbulanceTeam> {
 				break;
 			default:
 				break;
-			} 
+			}
 		}
 	}
 
 	private void informCenter(int time, ChangeSet changed) {
 		// inform Center with position
 		addMessage(new PositionInformation(time, me().getID(), me().getLocation(this.model)));
-		
+
 		// Inform Center with precepted entities
 		StandardEntity entity;
 		BlockadeInformation blockadeInfo;
@@ -332,8 +297,7 @@ public class AmbulanceAgent extends AbstractAgent<AmbulanceTeam> {
 															blockade.getRepairCost());
 					addMessage(blockadeInfo);
 				}
-			} 
-			else if (entity instanceof Civilian) { // Civilian
+			} else if (entity instanceof Civilian) { // Civilian
 				Civilian victim = (Civilian) entity;
 				if (victim.isDamageDefined()) {
 					if (victim.getDamage() > 0) {
@@ -341,34 +305,33 @@ public class AmbulanceAgent extends AbstractAgent<AmbulanceTeam> {
 								& victim.isDamageDefined()) {
 							victimInfo = new VictimInformation(	time, 
 																victim.getID(), 
-																victim.getPosition(), 
-																victim.getHP(),
+																victim.getPosition(),
+																victim.getHP(), 
 																victim.getBuriedness(), 
-																victim.getDamage(), 
+																victim.getDamage(),
 																victim.getLocation(model));
 							addMessage(victimInfo);
 						}
 					}
 				}
-			} 
-			else if (entity instanceof AmbulanceTeam) { // ambulance team
+			} else if (entity instanceof AmbulanceTeam) { // ambulance team
 				AmbulanceTeam ambulance = (AmbulanceTeam) entity;
 				if (ambulance.isDamageDefined()) {
 					if (ambulance.getDamage() > 0) {
 						if (ambulance.isPositionDefined() & ambulance.isHPDefined() & ambulance.isBuriednessDefined()) {
-							AmbulanceTeamInformation ambulanceInfo = new AmbulanceTeamInformation(	time, 
-																									ambulance.getID(),
+							AmbulanceTeamInformation ambulanceInfo = new AmbulanceTeamInformation(	time,
+																									ambulance.getID(), 	
 																									ambulance.getHP(), 
-																									ambulance.getDamage(), 
-																									ambulance.getBuriedness(),
+																									ambulance.getDamage(),
+																									ambulance.getBuriedness(), 
 																									ambulance.getPosition());
 							addMessage(ambulanceInfo);
-						} 
+						}
 					}
 				}
-			} 
-			
+			}
+
 		}
 	}
-	
+
 }

@@ -1,5 +1,9 @@
 package fmcp.Sim;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.TreeMap;
+import java.util.Vector;
 
 import rescuecore2.misc.Pair;
 import rescuecore2.standard.entities.StandardWorldModel;
@@ -12,10 +16,10 @@ public class DataAgent extends DataVictim{
 	private TreeMap<Double, DataVictim> missions;
 	
 	
-	public DataAgent(EntityID id, int Hp, int damage, EntityID position, int buriedness, Pair<Integer, Integer> location) {
-		super(id, Hp, damage, position, buriedness, location);
+	public DataAgent(int time, EntityID id, int Hp, int damage, EntityID position, int buriedness, Pair<Integer, Integer> location) {
+		super(time, id, Hp, damage, position, buriedness, location);
 		//values from configuration files
-		// taking worst case with ~0.95 (normal distribution)
+		// taking worst case withaddTask ~0.95 (normal distribution)
 		velocity = velocityMean - (3 * velocityStd); //values from configuration files
 	}
 	
@@ -25,7 +29,14 @@ public class DataAgent extends DataVictim{
 	
 	
 	//////////////////////////////////////////////////////
-	
+	public List<EntityID> getTasksByOrder() {
+		List<EntityID> ans= new Vector<EntityID>();
+		for (DataVictim val: missions.values()) {
+			ans.add(val.getId());
+		}
+		Collections.reverse(ans);
+		return ans;
+	}
 	
 	public int timeToFinishTransport (StandardWorldModel centerModel) {
 		if (isTransporting()) {

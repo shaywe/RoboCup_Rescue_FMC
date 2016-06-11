@@ -12,15 +12,16 @@ public class DataVictim {
 	protected Pair<Integer, Integer> location;
 	protected int buriedness;
 	protected Status status; // add to functions
+	int time;
 
-	public DataVictim (EntityID id, int Hp, int damage, EntityID position, int buriedness, Pair<Integer, Integer> location) {
+	public DataVictim (int time, EntityID id, int Hp, int damage, EntityID position, int buriedness, Pair<Integer, Integer> location) {
 		this.id = id;
 		setStatus(Status.REST); // initial status
-		update(Hp, damage, position, buriedness, location, true);
+		update(time, Hp, damage, position, buriedness, location, true);
 	}
 	//////////////////////////////////////////////////////
 	
-	protected void update (int Hp, int damage, EntityID position, int buriedness, Pair<Integer, Integer> location, Boolean isFullUpdate) {
+	protected void update (int time, int Hp, int damage, EntityID position, int buriedness, Pair<Integer, Integer> location, Boolean isFullUpdate) {
 		if (!isDead()) {
 			this.location = location;
 			if (isFullUpdate) {
@@ -29,6 +30,7 @@ public class DataVictim {
 				setBuriedness(buriedness);
 				this.setHp(Hp);
 			}
+			this.time = time;
 		}
 	}
 	/**
@@ -81,11 +83,20 @@ public class DataVictim {
 		return this.Hp;
 	}
 	
+	public int getTime () {
+		return this.time;
+	}
+	
 	protected void setHp (int Hp) {
 		this.Hp = Hp;
 		if (this.Hp <= 0) {
 			this.status = Status.DEAD;
 		}
+	}
+	
+	public void setHpAfter (int time) {
+		int dt = Math.abs(getTime() - time);
+		setHp(this.Hp - (dt * getDamage()));
 	}
 	
 	
@@ -117,13 +128,13 @@ public class DataVictim {
 	}
 	
 	protected void setBuriedness (int buriedness) {
-		this.buriedness = buriedness;
-		if (this.buriedness > 0) {
+		if (buriedness > 0) {
 			this.status = Status.BURIED;
 		}
-		if (buriedness == 0 && getStatus() != Status.BURIED) { //remove?
+		if (buriedness == 0 && getStatus() == Status.BURIED) { 
 			setStatus(Status.TRANSPORTED_TO_RESCUE);
 		}
+		this.buriedness = buriedness;
 	}
 	
 	protected boolean isBuried () {

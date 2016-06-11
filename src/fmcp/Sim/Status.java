@@ -13,8 +13,6 @@ public enum Status {
 	//
 	SCOUTING, // when agent reports transporting? / when center decides?
 	
-	//
-	WALKING_TO_REFUGE, // when there is a civilian who's damaged but not buried?
 	
 	// passive status
 	//

@@ -33,6 +33,7 @@ import commlib.message.BaseMessageType;
 import commlib.message.RCRSCSMessage;
 import commlib.report.ReportMessage;
 import commlib.task.TaskMessage;
+import commlib.task.at.RescueAreaTaskMessage;
 import commlib.message.BaseMessageType;
 
 
@@ -81,7 +82,7 @@ public class CentralAgent extends AbstractCSAgent<Building> {
     	if (time == config.getIntValue(kernel.KernelConstants.IGNORE_AGENT_COMMANDS_KEY)) {
         	if(channelComm){
                 int channel = 1; // the channel the agent is going to use in order to send and receive messages
-				// Assign the agent to channel 1
+				// Assign tDataVictimhe agent to channel 1
 				setMessageChannel(channel); // shall be used once --> in a simulation or a time step?
 			}
         }
@@ -90,12 +91,18 @@ public class CentralAgent extends AbstractCSAgent<Building> {
     	consolidateData();
     	
     	if (newTask) {
+    		// update victims' hp
+    		for (DataVictim vic: victims.getVector()) {
+    			if (vic.getTime() == time) {
+    				vic.setHpAfter(time);
+    			}
+    		}
     		// run solving algorithm 
     		FisherSolver solver = new FisherSolver(RescueAgents, victims, model);
     		solver.solve();
 
     		// sending task messages to agents
-    		sendTasks();
+    		sendTasks(time);
     	}
     	// rest
     	sendRest(time);
@@ -114,7 +121,8 @@ public class CentralAgent extends AbstractCSAgent<Building> {
 				//
 			case AMBULANCE_TEAM:
 				// only damaged teams
-				RescueAgents.updateAgentData(new DataAgent(((AmbulanceTeamInformation)msg).getEntityID(),
+				RescueAgents.updateAgentData(new DataAgent(	((AmbulanceTeamInformation)msg).getSendTime(),
+															((AmbulanceTeamInformation)msg).getEntityID(),
 															((AmbulanceTeamInformation)msg).getHP(),
 															((AmbulanceTeamInformation)msg).getDamage(),
 															((AmbulanceTeamInformation)msg).getPositionID(),
@@ -128,7 +136,8 @@ public class CentralAgent extends AbstractCSAgent<Building> {
 				if (thisIsNew) {
 					newTask = thisIsNew;
 				}
-				victims.updateAgentData(new DataVictim (((VictimInformation)msg).getVictimID(),
+				victims.updateAgentData(new DataVictim (((VictimInformation)msg).getSendTime(),
+														((VictimInformation)msg).getVictimID(),
 														((VictimInformation)msg).getHP(),
 														((VictimInformation)msg).getDamage(),
 														((VictimInformation)msg).getAreaID(),
@@ -138,8 +147,9 @@ public class CentralAgent extends AbstractCSAgent<Building> {
 			case POSITION:
 				// 
 				
-				RescueAgents.updateAgentData( ((PositionInformation)msg).getAgentID(),
-										((PositionInformation)msg).getCoordinate());
+				RescueAgents.updateAgentData(	((PositionInformation)msg).getSendTime(),
+												((PositionInformation)msg).getAgentID(),
+												((PositionInformation)msg).getCoordinate());
 				break;
 				
 			case BUILDING:
@@ -196,13 +206,7 @@ public class CentralAgent extends AbstractCSAgent<Building> {
 				break;
 			}
 			
-			
-			for (RCRSCSData<?> data: msg.getData()) {
-				System.out.println("*****data*******");
-				System.out.println(data);
-				System.out.println(data.getData());
-				System.out.println(data.getType());
-			}
+			// update agents
 		
     	}
 
@@ -216,9 +220,11 @@ public class CentralAgent extends AbstractCSAgent<Building> {
     /**
      * sending agents tasks after allocation
      */
-    private void sendTasks () {
+    private void sendTasks (int time) {
     	for (DataAgent agent : RescueAgents.getVector()) {
-    		addMessage(message);
+    		List<EntityID> victims = agent.getTasksByOrder();
+    		RescueAreaTaskMessage msg = new RescueAreaTaskMessage(time, me().getID(), agent.getId(), victims);
+    		addMessage(msg);
     	}
     }
     

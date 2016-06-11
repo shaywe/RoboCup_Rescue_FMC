@@ -20,7 +20,7 @@ public class DataList<T extends DataVictim> {
 	public void updateAgentData (T data) {
 		
 		if (this.contains(data)) { // existing id
-			vec.get(vec.indexOf(data)).update(data.getHp(), data.getDamage(), data.getPosition(), data.getBuriedness(),data.getLocation(), true);
+			vec.get(vec.indexOf(data)).update(data.getTime(), data.getHp(), data.getDamage(), data.getPosition(), data.getBuriedness(),data.getLocation(), true);
 		}
 		else { // this is a new one
 			vec.add(data);
@@ -30,10 +30,10 @@ public class DataList<T extends DataVictim> {
 	/*
 	 * updates agent's data or creates a new record if not exists
 	 */
-	public void updateAgentData (EntityID id, Pair<Integer, Integer> location) {
+	public void updateAgentData (int time, EntityID id, Pair<Integer, Integer> location) {
 		
 		if (this.containsEntityId(id)) { // existing id
-			get(id).update(-1, -1, null, -1, location, false);
+			get(id).update(time, -1, -1, null, -1, location, false);
 		}
 		else { // this is a new one
 			System.out.println("ERROR - POSITION MESSAGE FOR AGENT " + id + " BEFORE INIT");
