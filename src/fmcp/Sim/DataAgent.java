@@ -1,14 +1,15 @@
 package fmcp.Sim;
-import java.util.Queue;
+import java.util.TreeMap;
 
 import rescuecore2.misc.Pair;
+import rescuecore2.standard.entities.StandardWorldModel;
 import rescuecore2.worldmodel.EntityID;
 
 public class DataAgent extends DataVictim{
 	private final double velocityMean = 0.7;
 	private final double velocityStd = 0.1;
 	protected final double velocity;
-	private Queue<DataVictim> missions;
+	private TreeMap<Double, DataVictim> missions;
 	
 	
 	public DataAgent(EntityID id, int Hp, int damage, EntityID position, int buriedness, Pair<Integer, Integer> location) {
@@ -24,9 +25,11 @@ public class DataAgent extends DataVictim{
 	
 	
 	//////////////////////////////////////////////////////
-	public int timeToFinishTransport () {
+	
+	
+	public int timeToFinishTransport (StandardWorldModel centerModel) {
 		if (isTransporting()) {
-			return ...
+			return DataList.timeToRefuge(this, centerModel, this);
 		}
 		else {
 			return 0;
@@ -43,6 +46,19 @@ public class DataAgent extends DataVictim{
 	// velocity
 	public double getVelocity () {
 		return this.velocity;
+	}
+
+
+	public void addTask(Double priority, DataVictim victim) {
+		missions.put(priority, victim);
+	}
+	
+	public void clearTasks() {
+		missions.clear();
+	}
+	
+	public boolean hasMoreTasks () {
+		return !missions.isEmpty();
 	}
 	
 	

@@ -26,7 +26,7 @@ public abstract class Solver {
 
 
 	
-	public abstract Vector<Assignment>[] solve ();
+	public abstract void solve ();
 	
 
 }

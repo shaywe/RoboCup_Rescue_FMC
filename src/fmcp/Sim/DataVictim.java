@@ -13,7 +13,6 @@ public class DataVictim {
 	protected int buriedness;
 	protected Status status; // add to functions
 
-	
 	public DataVictim (EntityID id, int Hp, int damage, EntityID position, int buriedness, Pair<Integer, Integer> location) {
 		this.id = id;
 		setStatus(Status.REST); // initial status

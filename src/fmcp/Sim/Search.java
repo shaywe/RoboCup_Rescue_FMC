@@ -1,4 +1,4 @@
-package fmcp;
+package fmcp.Sim;
 
 import rescuecore2.worldmodel.EntityID;
 import rescuecore2.worldmodel.Entity;

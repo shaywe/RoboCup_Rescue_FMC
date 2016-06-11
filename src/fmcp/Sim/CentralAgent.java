@@ -1,5 +1,6 @@
 package fmcp.Sim;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumSet;
 
@@ -10,6 +11,8 @@ import rescuecore2.log.Logger;
 
 import rescuecore2.standard.entities.Building;
 import rescuecore2.standard.entities.Refuge;
+import rescuecore2.standard.entities.Road;
+import rescuecore2.standard.entities.StandardEntity;
 import rescuecore2.standard.entities.StandardEntityURN;
 
 
@@ -46,12 +49,8 @@ public class CentralAgent extends AbstractCSAgent<Building> {
 	
 	private DataList<DataAgent> RescueAgents;
 	private DataList<DataVictim> victims;
-	private List<EntityID> refuges;
-	
-	
-	
+	boolean newTask;
 	private boolean	channelComm;
-	
 	
 	@Override
     public String toString() {
@@ -86,30 +85,27 @@ public class CentralAgent extends AbstractCSAgent<Building> {
 				setMessageChannel(channel); // shall be used once --> in a simulation or a time step?
 			}
         }
-    	
-    	
+    	newTask = false;
     	// consolidate and update information
     	consolidateData();
     	
-    	// inform agents??
-    	
-    	// run FMC_TA
-    	
-    	// assign tasks
-    	
+    	if (newTask) {
+    		// run solving algorithm 
+    		FisherSolver solver = new FisherSolver(RescueAgents, victims, model);
+    		solver.solve();
+
+    		// sending task messages to agents
+    		sendTasks();
+    	}
     	// rest
     	sendRest(time);
     }
     
+    /**
+     * Receiving messages from agents and updating lists
+     */
     private void consolidateData () {
     	for (RCRSCSMessage msg : receivedMessageList) {
-    		System.out.println(msg.getSendTime());
-			System.out.println(msg.isSendable());
-			System.out.println(msg.getMessageType());
-			System.out.println(msg.getMessageType() == BaseMessageType.POSITION);
-			System.out.println(msg instanceof WorldInformation);
-			
-			System.out.println("*****msg*******");
 			if (msg instanceof TaskMessage) {
 				System.out.println("CENTER RECEIVED TASK MESSAGE");
 			}
@@ -117,7 +113,7 @@ public class CentralAgent extends AbstractCSAgent<Building> {
 			switch (msg.getMessageType()) {
 				//
 			case AMBULANCE_TEAM:
-				//
+				// only damaged teams
 				RescueAgents.updateAgentData(new DataAgent(((AmbulanceTeamInformation)msg).getEntityID(),
 															((AmbulanceTeamInformation)msg).getHP(),
 															((AmbulanceTeamInformation)msg).getDamage(),
@@ -127,21 +123,20 @@ public class CentralAgent extends AbstractCSAgent<Building> {
 				break;
 				//
 			case VICTIM:
-				// 
+				// only damaged victims
+				boolean thisIsNew = victims.containsEntityId(((VictimInformation)msg).getVictimID());
+				if (thisIsNew) {
+					newTask = thisIsNew;
+				}
 				victims.updateAgentData(new DataVictim (((VictimInformation)msg).getVictimID(),
 														((VictimInformation)msg).getHP(),
 														((VictimInformation)msg).getDamage(),
 														((VictimInformation)msg).getAreaID(),
 														((VictimInformation)msg).getBuriedness(),
-														((VictimInformation)msg).getCoodinate()));
-				// execute algorithm and assign tasks to agents
-				
+														((VictimInformation)msg).getCoodinate()));				
 				break;
 			case POSITION:
-				//
-				if (((PositionInformation)msg).getAgentID() instanceof Refuge) {
-					
-				}
+				// 
 				
 				RescueAgents.updateAgentData( ((PositionInformation)msg).getAgentID(),
 										((PositionInformation)msg).getCoordinate());
@@ -149,22 +144,17 @@ public class CentralAgent extends AbstractCSAgent<Building> {
 				
 			case BUILDING:
 				//
-				refuges.add(((BuildingInformation)msg).getBuildingID());
 				break;
-					
 				
-				
-			
 			case BLOCKADE:
-				
+				//
 				break;
 				
-			
+				////
 			case CLEAR_ROUTE:
 				break;
 			case DECIDE_LEADER:
 				break;
-			
 			case EXTINGUISH_AREA:
 				break;
 			case REST_TASK:
@@ -224,29 +214,13 @@ public class CentralAgent extends AbstractCSAgent<Building> {
     }
     
     /**
-     * gets all agents who are not transporting a victim
-     * @param list
-     * @return a list with agents either scouting, digging ,in rest, or at refuge
+     * sending agents tasks after allocation
      */
-    private DataList<DataAgent> getAllAgents (DataList<DataAgent> list) {
-    	return list.getAgentsWithStatus(Status.SCOUTING, Status.DIGGING, Status.REST, Status.REFUGE);
+    private void sendTasks () {
+    	for (DataAgent agent : RescueAgents.getVector()) {
+    		addMessage(message);
+    	}
     }
-    
-    private int totalRescueTime (DataAgent rescueAgent, DataVictim victim) {
-    	return DataList.timeToVictim(rescueAgent, victim)
-    			+ victim.timeToUnbury()
-    			+ DataList.timeToRefuge(rescueAgent, victim, rescueAgent.getVelocity());//fix
-    }
-    
-    
-    
-    
-    private void compute () {
-    	FisherSolver.setInput(RescueAgents, victims);
-    	
-    }
-    
-    
     
 }
 

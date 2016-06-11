@@ -1,6 +1,10 @@
 package sample;
 
 import java.util.List;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.HashSet;
@@ -69,6 +73,14 @@ public abstract class AbstractSampleAgent<E extends StandardEntity> extends Stan
         buildingIDs = new ArrayList<EntityID>();
         roadIDs = new ArrayList<EntityID>();
         refugeIDs = new ArrayList<EntityID>();
+        //
+        BufferedWriter out = null;
+        try {
+        	out = new BufferedWriter(new FileWriter("TESTFILE-AT.txt"));
+        }
+        catch (Exception e) {
+        	
+        }
         for (StandardEntity next : model) {
             if (next instanceof Building) {
                 buildingIDs.add(next.getID());
@@ -78,7 +90,24 @@ public abstract class AbstractSampleAgent<E extends StandardEntity> extends Stan
             }
             if (next instanceof Refuge) {
                 refugeIDs.add(next.getID());
+                try {
+                	out.write(this.getID() + " --- "+next + " -location:  " + next.getLocation(model));
+                	out.newLine();
+                }
+                catch (Exception e) {
+                	
+                }
             }
+            
+            
+            
+        }
+       
+        try {
+            out.close();
+        }
+        catch (Exception e) {
+        	
         }
         search = new SampleSearch(model);
         neighbours = search.getGraph();

@@ -4,12 +4,15 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Set;
 
+import javax.swing.text.html.parser.Entity;
+
 import commlib.components.AbstractCSAgent;
 
 import java.util.HashSet;
 import java.util.Collections;
 import java.util.Map;
 
+import rescuecore2.worldmodel.ChangeSet;
 import rescuecore2.worldmodel.EntityID;
 import rescuecore2.Constants;
 import rescuecore2.log.Logger;
@@ -95,7 +98,6 @@ public abstract class AbstractAgent<E extends StandardEntity> extends AbstractCS
             }
             if (next instanceof Refuge) {
                 refugeIDs.add(next.getID());
-                next.getLocation(model);
             }
         }
         //
@@ -142,7 +144,7 @@ public abstract class AbstractAgent<E extends StandardEntity> extends AbstractCS
         	if(channelComm){
                 int channel = 1; // the channel the agent is going to use in order to send and receive messages
 				// Assign the agent to channel 1
-				setMessageChannel(channel); // shall be used once --> in a simulation or a time step?
+				setMessageChannel(channel);
 			}
         }
     }

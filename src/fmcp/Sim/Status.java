@@ -1,32 +1,32 @@
-package fmcp;
+package fmcp.Sim;
 
 public enum Status {
 	// active status
 	// 
-	DIGGING,
+	DIGGING, // when agent reports digging? / center assign with status / delete
 	
 	//
-	TRANSPORTING_VICTIM,
+	TRANSPORTING_VICTIM, // when agent reports transporting? / when center decides? 
 	
 	
 	//////
 	//
-	SCOUTING,
+	SCOUTING, // when agent reports transporting? / when center decides?
 	
 	//
-	WALKING_TO_REFUGE,
+	WALKING_TO_REFUGE, // when there is a civilian who's damaged but not buried?
 	
 	// passive status
 	//
-	BURIED,
+	BURIED, // buriedness > 0
 	
 	//
-	TRANSPORTED_TO_RESCUE,
+	TRANSPORTED_TO_RESCUE, //
 	
 	//
-	DEAD,
+	DEAD, // hp <= 0
 	
-	REFUGE,
+	REFUGE, 
 	
 	REST
 }

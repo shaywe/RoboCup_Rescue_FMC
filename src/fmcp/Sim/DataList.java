@@ -1,7 +1,12 @@
 package fmcp.Sim;
+import java.util.Collection;
+import java.util.List;
 import java.util.Vector;
 import commlib.message.RCRSCSMessage;
 import rescuecore2.misc.Pair;
+import rescuecore2.standard.entities.StandardEntity;
+import rescuecore2.standard.entities.StandardEntityURN;
+import rescuecore2.standard.entities.StandardWorldModel;
 import rescuecore2.worldmodel.EntityID;
 
 public class DataList<T extends DataVictim> {
@@ -36,7 +41,7 @@ public class DataList<T extends DataVictim> {
 	}
 	
 	
-	private boolean containsEntityId (EntityID id) {
+	public boolean containsEntityId (EntityID id) {
 		for (DataVictim vic : this.vec) {
 			if (vic.getId().equals(id)) {
 				return true;
@@ -45,10 +50,11 @@ public class DataList<T extends DataVictim> {
 		return false;
 	}
 	
-	private boolean contains (T data) {
+	public boolean contains (T data) {
 		return vec.contains(data);		
 	}
 	
+
 	// get specific agent
 	public T get (EntityID id) {
 		for (T vic : this.vec) {
@@ -70,6 +76,7 @@ public class DataList<T extends DataVictim> {
 	public int size () {
 		return vec.size();
 	}
+	
 	
     
 	// filter list for buried victims
@@ -128,10 +135,22 @@ public class DataList<T extends DataVictim> {
 				+ Math.abs(A.getLocation().second() - B.getLocation().second());
 	}
 	
-
-	private static int getRectDistance (DataVictim A, EntityID B) {
-		return 0;//Math.abs(A.getLocation().first() - B.)
-				//+ Math.abs(A.getLocation().second() - B.getLocation().second());
+	/**
+	 * 
+	 * @param A victim
+	 * @param refuges center's refuges list
+	 * @return the rectangular distance between the given victim and the closest refuge
+	 */
+	private static int getRectDistance (DataVictim A, StandardWorldModel centerModel) {
+		int minDistance = Integer.MAX_VALUE;
+		for (StandardEntity ref : centerModel.getEntitiesOfType(StandardEntityURN.REFUGE)) {
+			int tmp = Math.abs(A.getLocation().first() - ref.getLocation(centerModel).first())
+					+ Math.abs(A.getLocation().second() - ref.getLocation(centerModel).second());
+			if (tmp < minDistance) {
+				minDistance = tmp;
+			}
+		}
+		return minDistance;
 	}
 	
 	
@@ -153,9 +172,8 @@ public class DataList<T extends DataVictim> {
 	 * @return the time that will take the rescue agent to reach the refuge from victim's location
 	 * rounding time up for worst case scenario
 	 */
-	public static int timeToRefuge (DataAgent victim, DataVictim refuge, double agentVelocity) {
-		getRectDistance(victim, refuge);
-		return 1;
+	public static int timeToRefuge (DataVictim victim, StandardWorldModel centerModel, DataAgent rescueAgent) {
+		return (int) (getRectDistance(victim, centerModel) / rescueAgent.getVelocity()) + 1;
 	}
 	
 	
