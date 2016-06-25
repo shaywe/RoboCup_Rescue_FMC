@@ -1,44 +1,25 @@
 package fmcp.Sim;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.EnumSet;
 
 import rescuecore2.worldmodel.ChangeSet;
-import rescuecore2.worldmodel.Entity;
 import rescuecore2.messages.Command;
-import rescuecore2.log.Logger;
-
 import rescuecore2.standard.entities.Building;
-import rescuecore2.standard.entities.Refuge;
-import rescuecore2.standard.entities.Road;
+import rescuecore2.standard.entities.Human;
 import rescuecore2.standard.entities.StandardEntity;
 import rescuecore2.standard.entities.StandardEntityURN;
-
-
+import rescuecore2.standard.entities.StandardWorldModel;
 import rescuecore2.worldmodel.EntityID;
 import java.util.List;
-import java.util.Vector;
-
-import org.apache.log4j.jmx.Agent;
-
 import commlib.components.AbstractCSAgent;
-import commlib.data.RCRSCSData;
 import commlib.information.AmbulanceTeamInformation;
-import commlib.information.BuildingInformation;
 import commlib.information.PositionInformation;
 import commlib.information.VictimInformation;
-import commlib.information.WorldInformation;
-import commlib.message.BaseMessageType;
 import commlib.message.RCRSCSMessage;
-import commlib.report.ReportMessage;
+import commlib.report.DoneReportMessage;
 import commlib.task.TaskMessage;
 import commlib.task.at.RescueAreaTaskMessage;
-import commlib.message.BaseMessageType;
-
-
-
-import commlib.message.RCRSCSMessage;
 import rescuecore2.Constants;
 import rescuecore2.standard.kernel.comms.ChannelCommunicationModel;
 import fmcp.Algo.*;
@@ -51,6 +32,7 @@ public class CentralAgent extends AbstractCSAgent<Building> {
 	private DataList<DataAgent> RescueAgents;
 	private DataList<DataVictim> victims;
 	boolean newTask;
+	boolean someoneIsDone;
 	private boolean	channelComm;
 	
 	@Override
@@ -60,6 +42,7 @@ public class CentralAgent extends AbstractCSAgent<Building> {
 	
 	@Override
 	public void postConnect(){
+		super.postConnect();
 		boolean speakComm = config.getValue(Constants.COMMUNICATION_MODEL_KEY)
 				.equals(ChannelCommunicationModel.class.getName());
 		
@@ -79,6 +62,7 @@ public class CentralAgent extends AbstractCSAgent<Building> {
     	//super.receiveMessage(heard);
         //this.thinking(time, changed, heard);
         //super.sendMessage(time);
+    	
     	if (time == config.getIntValue(kernel.KernelConstants.IGNORE_AGENT_COMMANDS_KEY)) {
         	if(channelComm){
                 int channel = 1; // the channel the agent is going to use in order to send and receive messages
@@ -87,10 +71,11 @@ public class CentralAgent extends AbstractCSAgent<Building> {
 			}
         }
     	newTask = false;
+    	someoneIsDone = false;
     	// consolidate and update information
-    	consolidateData();
+    	consolidateData(model);
     	
-    	if (newTask) {
+    	if (newTask || someoneIsDone) {
     		// update victims' hp
     		for (DataVictim vic: victims.getVector()) {
     			if (vic.getTime() == time) {
@@ -111,7 +96,7 @@ public class CentralAgent extends AbstractCSAgent<Building> {
     /**
      * Receiving messages from agents and updating lists
      */
-    private void consolidateData () {
+    private void consolidateData (StandardWorldModel model) {
     	for (RCRSCSMessage msg : receivedMessageList) {
 			if (msg instanceof TaskMessage) {
 				System.out.println("CENTER RECEIVED TASK MESSAGE");
@@ -136,13 +121,16 @@ public class CentralAgent extends AbstractCSAgent<Building> {
 				if (thisIsNew) {
 					newTask = thisIsNew;
 				}
+				long ThreadId = Thread.currentThread().getId();
+				System.out.println("# " + ThreadId + " - " +msg);
 				victims.updateAgentData(new DataVictim (((VictimInformation)msg).getSendTime(),
 														((VictimInformation)msg).getVictimID(),
 														((VictimInformation)msg).getHP(),
 														((VictimInformation)msg).getDamage(),
 														((VictimInformation)msg).getAreaID(),
 														((VictimInformation)msg).getBuriedness(),
-														((VictimInformation)msg).getCoodinate()));				
+														model.getEntity(((VictimInformation)msg).getAreaID()).getLocation(model)));//
+														//((VictimInformation)msg).getCoodinate()));				
 				break;
 			case POSITION:
 				// 
@@ -150,6 +138,19 @@ public class CentralAgent extends AbstractCSAgent<Building> {
 				RescueAgents.updateAgentData(	((PositionInformation)msg).getSendTime(),
 												((PositionInformation)msg).getAgentID(),
 												((PositionInformation)msg).getCoordinate());
+				break;
+				
+			case DONE:
+				// sent by agents who just unloaded a victim
+				DataAgent agent = RescueAgents.get( ((DoneReportMessage)msg).getAssignedAgentID());
+				for (DataVictim vic: agent.getMissions()) {
+					Human victim = (Human) model.getEntity(vic.getId());
+					// changing task's status when identifying that an agent has rescued it
+					if (victim.getPosition().equals(agent.getId())) {
+						vic.setStatus(Status.REFUGE);
+					}
+				}
+				
 				break;
 				
 			case BUILDING:
@@ -179,8 +180,7 @@ public class CentralAgent extends AbstractCSAgent<Building> {
 				
 			case BLOCKADE_WITH_COORDINATE:
 				break;
-			case DONE:
-				break;
+			
 			case EXCEPTION:
 				break;
 			
@@ -224,6 +224,7 @@ public class CentralAgent extends AbstractCSAgent<Building> {
     	for (DataAgent agent : RescueAgents.getVector()) {
     		List<EntityID> victims = agent.getTasksByOrder();
     		RescueAreaTaskMessage msg = new RescueAreaTaskMessage(time, me().getID(), agent.getId(), victims);
+    		
     		addMessage(msg);
     	}
     }

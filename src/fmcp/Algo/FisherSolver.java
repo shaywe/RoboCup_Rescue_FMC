@@ -49,9 +49,10 @@ public class FisherSolver extends Solver {
 				boolean isTransporting = agent.isTransporting();
 				
 				// if the victim can be saved
-				if (totalRescueTime(agent, victim, centerModel, isTransporting) < victim.timeToLive()) {
+				int totalRescueTime = totalRescueTime(agent, victim, centerModel, isTransporting);
+				if (totalRescueTime < victim.timeToLive()) {
 					// fill Rij
-					utilities[i][j] = victim.utility(agent.timeToFinishTransport(centerModel));
+					utilities[i][j] = victim.utility(agent.timeToFinishTransport(centerModel), totalRescueTime);
 				}
 				else {
 					utilities[i][j] = new Utility(0);
@@ -157,8 +158,7 @@ public class FisherSolver extends Solver {
 	 */
 	private int totalRescueTime(DataAgent rescueAgent, DataVictim victim, StandardWorldModel centerModel, boolean isTransporting) {
 		if (isTransporting) {
-			// time to refuge + time to new task + 2 * time to refuge (from new
-			// task)
+			// time to refuge + time to new task + 2 * time to refuge (from new task)
 			return rescueAgent.timeToFinishTransport(centerModel) + victim.timeToUnbury()
 					+ 2 * DataList.timeToRefuge(victim, centerModel, rescueAgent);
 		} else {

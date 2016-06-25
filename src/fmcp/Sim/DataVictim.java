@@ -66,8 +66,9 @@ public class DataVictim {
 	}
 	
 	
-	public Utility utility (int timeToFinishCurrentTask) {
-		return new Utility(this.HpMax - this.Hp - (timeToFinishCurrentTask * getDamage()));
+	public Utility utility (int timeToFinishCurrentTask, int totalRescueTime) {
+		return new Utility (this.HpMax - 
+						(this.Hp - ((timeToFinishCurrentTask + totalRescueTime) * getDamage())));
 	}
 	
 	

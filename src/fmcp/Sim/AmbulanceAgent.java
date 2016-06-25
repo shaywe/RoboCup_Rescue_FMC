@@ -1,9 +1,8 @@
 package fmcp.Sim;
 
 import java.util.List;
-import java.util.ArrayList;
+import java.util.Vector;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
 
@@ -14,29 +13,19 @@ import rescuecore2.log.Logger;
 
 import rescuecore2.standard.entities.StandardEntity;
 import rescuecore2.standard.entities.StandardEntityURN;
-import rescuecore2.standard.entities.AmbulanceCentre;
 import rescuecore2.standard.entities.AmbulanceTeam;
 import rescuecore2.standard.entities.Human;
 import rescuecore2.standard.entities.Civilian;
 import rescuecore2.standard.entities.Refuge;
-import commlib.message.BaseMessageType;
 import commlib.message.RCRSCSMessage;
 import commlib.report.DoneReportMessage;
-import commlib.report.ReportMessage;
-import commlib.task.ScoutAreaTaskMessage;
-import commlib.task.TaskMessage;
 import commlib.task.at.RescueAreaTaskMessage;
-import firesimulator.world.AmbulanceCenter;
-import commlib.data.RCRSCSData;
 import commlib.information.AmbulanceTeamInformation;
 import commlib.information.BlockadeInformation;
-import commlib.information.BuildingInformation;
 import commlib.information.PositionInformation;
 import commlib.information.VictimInformation;
-import commlib.information.WorldInformation;
 import rescuecore2.Constants;
 import rescuecore2.standard.entities.Blockade;
-import rescuecore2.standard.entities.Building;
 import rescuecore2.standard.kernel.comms.ChannelCommunicationModel;
 
 /**
@@ -61,7 +50,9 @@ public class AmbulanceAgent extends AbstractAgent<AmbulanceTeam> {
 				StandardEntityURN.GAS_STATION, StandardEntityURN.BUILDING); // change???
 
 		unexploredBuildings = new HashSet<EntityID>(buildingIDs);
-
+		
+		tasks = new Vector<Human>();
+		
 		// remove this???
 		boolean speakComm = config.getValue(Constants.COMMUNICATION_MODEL_KEY)
 				.equals(ChannelCommunicationModel.class.getName());
@@ -123,30 +114,36 @@ public class AmbulanceAgent extends AbstractAgent<AmbulanceTeam> {
 		}
 
 		for (Human next : tasks) {
-			if (next.getPosition().equals(location().getID())) {
-				// Targets in the same place might need rescuing or loading
-				if (next.getBuriedness() == 0 && !(location() instanceof Refuge)) {
-					// Load
-					Logger.info("Loading " + next);
-					// addMessage(message);
-					sendLoad(time, next.getID());
-					return;
-				}
-				if (next.getBuriedness() > 0) {
-					// Rescue
-					Logger.info("Rescueing " + next);
-					// addMessage(message);
-					sendRescue(time, next.getID());
-					return;
-				}
-			} 
+			if (next.getHP() <= 0) {
+				//is Dead 
+				tasks.remove(next);
+			}
 			else {
-				// Try to move to the target
-				List<EntityID> path = search.breadthFirstSearch(me().getPosition(), next.getPosition());
-				if (path != null) {
-					Logger.info("Moving to target");
-					sendMove(time, path);
-					return;
+				if (next.getPosition().equals(location().getID())) {
+					// Targets in the same place might need rescuing or loading
+					if (next.getBuriedness() == 0 && !(location() instanceof Refuge)) {
+						// Load
+						Logger.info("Loading " + next);
+						// addMessage(message);
+						sendLoad(time, next.getID());
+						return;
+					}
+					if (next.getBuriedness() > 0) {
+						// Rescue
+						Logger.info("Rescueing " + next);
+						// addMessage(message);
+						sendRescue(time, next.getID());
+						return;
+					}
+				} 
+				else {
+					// Try to move to the target
+					List<EntityID> path = search.breadthFirstSearch(me().getPosition(), next.getPosition());
+					if (path != null) {
+						Logger.info("Moving to target");
+						sendMove(time, path);
+						return;
+					}
 				}
 			}
 		}
@@ -282,7 +279,6 @@ public class AmbulanceAgent extends AbstractAgent<AmbulanceTeam> {
 		// Inform Center with precepted entities
 		StandardEntity entity;
 		BlockadeInformation blockadeInfo;
-		BuildingInformation buildingInfo;
 		VictimInformation victimInfo;
 
 		for (EntityID id : changed.getChangedEntities()) {
@@ -308,8 +304,10 @@ public class AmbulanceAgent extends AbstractAgent<AmbulanceTeam> {
 																victim.getPosition(),
 																victim.getHP(), 
 																victim.getBuriedness(), 
-																victim.getDamage(),
-																victim.getLocation(model));
+																victim.getDamage());//,
+																//victim.getLocation(model));
+							long ThreadId = Thread.currentThread().getId();
+							System.out.println("# " + ThreadId + " - " +(victim.getLocation(model)));
 							addMessage(victimInfo);
 						}
 					}

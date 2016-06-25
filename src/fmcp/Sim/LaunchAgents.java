@@ -90,7 +90,7 @@ public final class LaunchAgents {
     private static void connect(ComponentLauncher launcher, int fb, int pf, int at, Config config) throws InterruptedException, ConnectionException {
         int i = 0;
         try {
-            while (fb-- != 0) {
+            while (fb-- != 0 && false) {
                 Logger.info("Connecting fire brigade " + (i++) + "...");
                 //launcher.connect(new SampleFireBrigade());
                 Logger.info("success");
@@ -100,7 +100,7 @@ public final class LaunchAgents {
             Logger.info("failed: " + e.getMessage());
         }*/
         try {
-            while (pf-- != 0) {
+            while (pf-- != 0 && false) {
                 Logger.info("Connecting police force " + (i++) + "...");
                 //launcher.connect(new SamplePoliceForce());
                 Logger.info("success");
@@ -109,11 +109,13 @@ public final class LaunchAgents {
         catch (ComponentConnectionException e) {
             Logger.info("failed: " + e.getMessage());
         }*/
+        int numOfAT = 0;
         try {
-            while (at-- != 0) {
+            while (numOfAT < 10) { //at-- != 0
                 Logger.info("Connecting ambulance team " + (i++) + "...");
                 launcher.connect(new AmbulanceAgent());
                 Logger.info("success");
+                numOfAT++;
             }
         }
         catch (ComponentConnectionException e) {

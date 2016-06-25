@@ -68,9 +68,8 @@ public class DataAgent extends DataVictim{
 		missions.clear();
 	}
 	
-	public boolean hasMoreTasks () {
-		return !missions.isEmpty();
+	public Collection<DataVictim> getMissions() {
+		return missions.values();
 	}
-	
 	
 }
